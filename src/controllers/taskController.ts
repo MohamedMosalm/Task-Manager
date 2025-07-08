@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 
 const prismaClient = new PrismaClient();
@@ -24,6 +24,9 @@ const getTaskById = async (req: Request, res: Response) => {
     });
     res.status(200).json(tasks);
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      res.status(404).json({ error: 'Task not found' });
+    }
     console.error('Error fetching tasks:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
@@ -45,4 +48,48 @@ const createTask = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-export { getAllTasks, createTask, getTaskById };
+
+const updateTask = async (req: Request, res: Response) => {
+  const { title, content } = req.body;
+  const { id } = req.params;
+
+  try {
+    const updatedTask = await prismaClient.task.update({
+      where: {
+        id: parseInt(id),
+      },
+      data: {
+        title,
+        content,
+      },
+    });
+    res.status(201).json(updatedTask);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      res.status(404).json({ error: 'Task not found' });
+    }
+    console.error('Error updating task:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const deleteTask = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    await prismaClient.task.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+    res.status(204).json({ message: 'Task Deleted Successfully' });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      res.status(404).json({ error: 'Task not found' });
+    }
+    console.error('Error deleteing task:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+export { getAllTasks, createTask, getTaskById, updateTask, deleteTask };

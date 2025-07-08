@@ -13,4 +13,20 @@ const getAllTasks = async (_req: Request, res: Response) => {
   }
 };
 
-export { getAllTasks };
+const createTask = async (req: Request, res: Response) => {
+  const { title, content } = req.body;
+
+  try {
+    const newTask = await prismaClient.task.create({
+      data: {
+        title,
+        content,
+      },
+    });
+    res.status(201).json(newTask);
+  } catch (error) {
+    console.error('Error creating task:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+export { getAllTasks, createTask };

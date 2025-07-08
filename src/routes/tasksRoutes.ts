@@ -5,6 +5,6 @@ const taskRouter = Router();
 
 taskRouter.route('/').get(taskController.getAllTasks).post(taskController.createTask);
 
-taskRouter.route('/:id').get(taskController.getTaskById).patch(taskController.updateTask);
+taskRouter.route('/:id').get(taskController.getTaskById).patch(taskController.updateTask).delete(taskController.deleteTask);
 
 export default taskRouter;

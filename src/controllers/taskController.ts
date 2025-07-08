@@ -54,7 +54,7 @@ const updateTask = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const newTask = await prismaClient.task.update({
+    const updatedTask = await prismaClient.task.update({
       where: {
         id: parseInt(id),
       },
@@ -63,7 +63,7 @@ const updateTask = async (req: Request, res: Response) => {
         content,
       },
     });
-    res.status(201).json(newTask);
+    res.status(201).json(updatedTask);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       res.status(404).json({ error: 'Task not found' });
@@ -73,4 +73,23 @@ const updateTask = async (req: Request, res: Response) => {
   }
 };
 
-export { getAllTasks, createTask, getTaskById, updateTask };
+const deleteTask = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    await prismaClient.task.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+    res.status(204).json({ message: 'Task Deleted Successfully' });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      res.status(404).json({ error: 'Task not found' });
+    }
+    console.error('Error deleteing task:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+export { getAllTasks, createTask, getTaskById, updateTask, deleteTask };

@@ -13,6 +13,22 @@ const getAllTasks = async (_req: Request, res: Response) => {
   }
 };
 
+const getTaskById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const tasks = await prismaClient.task.findUnique({
+      where: {
+        id: parseInt(id),
+      },
+    });
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 const createTask = async (req: Request, res: Response) => {
   const { title, content } = req.body;
 
@@ -29,4 +45,4 @@ const createTask = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-export { getAllTasks, createTask };
+export { getAllTasks, createTask, getTaskById };

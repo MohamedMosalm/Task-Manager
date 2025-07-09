@@ -51,7 +51,7 @@ const createTask = async (req: Request, res: Response) => {
 };
 
 const updateTask = async (req: Request, res: Response) => {
-  const { title, content } = req.body;
+  const { title, content, completed } = req.body;
   const { id } = req.params;
 
   try {
@@ -62,6 +62,7 @@ const updateTask = async (req: Request, res: Response) => {
       data: {
         title,
         content,
+        completed,
       },
     });
     sendSuccessResponse(res, 200, 'Task updated successfully', updatedTask);

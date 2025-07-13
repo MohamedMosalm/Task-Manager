@@ -4,8 +4,8 @@ import { sendSuccessResponse, setAuthCookies } from '../utils/responseHandler';
 import asyncWrapper from '../utils/asyncWrapper';
 import { AppError } from '../middlewares/errorHandler';
 // import { z } from 'zod';
-import { hashPassword } from '../utils/passwordUtils';
-import { generateTokenPair, TokenPair, TokenPayload } from '../utils/jwtUtils';
+import { comparePassword, hashPassword } from '../utils/passwordUtils';
+import { generateTokenPair } from '../utils/jwtUtils';
 
 const prismaClient = new PrismaClient();
 
@@ -50,4 +50,39 @@ const registerUser = asyncWrapper(async (req: Request, res: Response) => {
   });
 });
 
-export { registerUser };
+const loginUser = asyncWrapper(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    throw new AppError('All fields are required', 400);
+  }
+  //TODO: input validation using zod
+
+  const user = await prismaClient.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new AppError('Invalid credentials', 401);
+  }
+
+  const isCorrectPassword = await comparePassword(password, user.hashedPassword);
+  if (!isCorrectPassword) {
+    throw new AppError('Invalid credentials', 401);
+  }
+
+  const tokenPair = generateTokenPair({ id: user.id, email: user.email });
+
+  setAuthCookies(res, tokenPair);
+
+  sendSuccessResponse(res, 200, 'User Logged In Successfully', {
+    user: {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+    },
+  });
+});
+
+export { registerUser, loginUser };

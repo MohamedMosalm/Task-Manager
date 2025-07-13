@@ -1,11 +1,11 @@
 import { PrismaClient } from '../../generated/prisma';
 import { Request, Response } from 'express';
-import { sendSuccessResponse } from '../utils/responseHandler';
+import { sendSuccessResponse, setAuthCookies } from '../utils/responseHandler';
 import asyncWrapper from '../utils/asyncWrapper';
 import { AppError } from '../middlewares/errorHandler';
 // import { z } from 'zod';
 import { hashPassword } from '../utils/passwordUtils';
-import { generateToken } from '../utils/jwtUtils';
+import { generateTokenPair, TokenPair, TokenPayload } from '../utils/jwtUtils';
 
 const prismaClient = new PrismaClient();
 
@@ -36,39 +36,9 @@ const registerUser = asyncWrapper(async (req: Request, res: Response) => {
     },
   });
 
-  const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
+  const tokenPair = generateTokenPair({ id: newUser.id, email: newUser.email });
 
-  if (!accessTokenSecret) {
-    throw new AppError('ACCESS_TOKEN_SECRET environment variable is not set', 500);
-  }
-
-  const accessTokenTTL = process.env.ACCESS_TOKEN_TTL ? parseInt(process.env.ACCESS_TOKEN_TTL) : 86400; // 1 day
-
-  const accessToken = generateToken({ id: newUser.id, email: newUser.email }, accessTokenSecret, accessTokenTTL);
-
-  const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
-
-  if (!refreshTokenSecret) {
-    throw new AppError('REFRESH_TOKEN_SECRET environment variable is not set', 500);
-  }
-
-  const refreshTokenTTL = process.env.REFRESH_TOKEN_TTL ? parseInt(process.env.REFRESH_TOKEN_TTL) : 604800; // 7 days
-
-  const refreshToken = generateToken({ id: newUser.id, email: newUser.email }, refreshTokenSecret, refreshTokenTTL);
-
-  res.cookie('accessToken', accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: accessTokenTTL * 1000,
-  });
-
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: refreshTokenTTL * 1000,
-  });
+  setAuthCookies(res, tokenPair);
 
   sendSuccessResponse(res, 201, 'User Registered Successfully', {
     user: {

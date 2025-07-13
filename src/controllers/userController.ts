@@ -1,6 +1,6 @@
 import { PrismaClient } from '../../generated/prisma';
 import { Request, Response } from 'express';
-import { sendSuccessResponse, setAuthCookies } from '../utils/responseHandler';
+import { sendSuccessResponse, setAuthCookies, clearAuthCookies } from '../utils/responseHandler';
 import asyncWrapper from '../utils/asyncWrapper';
 import { AppError } from '../middlewares/errorHandler';
 // import { z } from 'zod';
@@ -85,4 +85,9 @@ const loginUser = asyncWrapper(async (req: Request, res: Response) => {
   });
 });
 
-export { registerUser, loginUser };
+const logoutUser = asyncWrapper(async (req: Request, res: Response) => {
+  clearAuthCookies(res);
+  sendSuccessResponse(res, 200, 'User Logged Out Successfully');
+});
+
+export { registerUser, loginUser, logoutUser };

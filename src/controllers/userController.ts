@@ -52,13 +52,31 @@ const registerUser = asyncWrapper(async (req: Request, res: Response) => {
     throw new AppError('REFRESH_TOKEN_SECRET environment variable is not set', 500);
   }
 
-  const refreshTokenTTL = process.env.REFRESH_TOKEN_SECRET ? parseInt(process.env.REFRESH_TOKEN_SECRET) : 604800; // 7 days
+  const refreshTokenTTL = process.env.REFRESH_TOKEN_TTL ? parseInt(process.env.REFRESH_TOKEN_TTL) : 604800; // 7 days
 
   const refreshToken = generateToken({ id: newUser.id, email: newUser.email }, refreshTokenSecret, refreshTokenTTL);
 
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: accessTokenTTL * 1000,
+  });
+
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: refreshTokenTTL * 1000,
+  });
+
   sendSuccessResponse(res, 201, 'User Registered Successfully', {
-    accessToken,
-    refreshToken,
+    user: {
+      id: newUser.id,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      email: newUser.email,
+    },
   });
 });
 

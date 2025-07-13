@@ -3,10 +3,12 @@ import taskRouter from './routes/tasksRoutes';
 import userRouter from './routes/usersRoutes';
 import { sendErrorResponse } from './utils/responseHandler';
 import { globalErrorHandler } from './middlewares/errorHandler';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 const apiPrefix = process.env.API_PREFIX || '/api/v1';
 

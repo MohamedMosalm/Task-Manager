@@ -36,10 +36,29 @@ const registerUser = asyncWrapper(async (req: Request, res: Response) => {
     },
   });
 
-  const token = generateToken({ id: newUser.id, email: newUser.email });
+  const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
+
+  if (!accessTokenSecret) {
+    throw new AppError('ACCESS_TOKEN_SECRET environment variable is not set', 500);
+  }
+
+  const accessTokenTTL = process.env.ACCESS_TOKEN_TTL ? parseInt(process.env.ACCESS_TOKEN_TTL) : 86400; // 1 day
+
+  const accessToken = generateToken({ id: newUser.id, email: newUser.email }, accessTokenSecret, accessTokenTTL);
+
+  const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
+
+  if (!refreshTokenSecret) {
+    throw new AppError('REFRESH_TOKEN_SECRET environment variable is not set', 500);
+  }
+
+  const refreshTokenTTL = process.env.REFRESH_TOKEN_SECRET ? parseInt(process.env.REFRESH_TOKEN_SECRET) : 604800; // 7 days
+
+  const refreshToken = generateToken({ id: newUser.id, email: newUser.email }, refreshTokenSecret, refreshTokenTTL);
 
   sendSuccessResponse(res, 201, 'User Registered Successfully', {
-    token,
+    accessToken,
+    refreshToken,
   });
 });
 

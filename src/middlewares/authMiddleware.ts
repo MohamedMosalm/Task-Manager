@@ -11,12 +11,14 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
 
   if (!accessToken && !refreshToken) {
     sendErrorResponse(res, 401, 'Unauthorized', 'No token provided');
+    return;
   }
 
   try {
     const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET as Secret) as TokenPayload;
     if (!decoded) {
       sendErrorResponse(res, 401, 'Unauthorized', 'Invalid token');
+      return;
     }
     const user = await prismaClient.user.findUnique({
       where: { id: decoded.id },
@@ -43,6 +45,7 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
 
         if (!decoded) {
           sendErrorResponse(res, 401, 'Unauthorized', 'Invalid token');
+          return;
         }
 
         const user = await prismaClient.user.findUnique({

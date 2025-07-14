@@ -78,6 +78,7 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
   }
 
   sendErrorResponse(res, 401, 'Unauthorized', 'Invalid or expired tokens');
+  return;
 };
 
 export default authMiddleware;

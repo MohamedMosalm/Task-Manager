@@ -3,19 +3,14 @@ import { Request, Response } from 'express';
 import { sendSuccessResponse, setAuthCookies, clearAuthCookies } from '../utils/responseHandler';
 import asyncWrapper from '../utils/asyncWrapper';
 import { AppError } from '../middlewares/errorHandler';
-// import { z } from 'zod';
+import { type UserRegistration, type UserLogin } from '../validation/validation';
 import { comparePassword, hashPassword } from '../utils/passwordUtils';
 import { generateTokenPair } from '../utils/jwtUtils';
 
 const prismaClient = new PrismaClient();
 
 const registerUser = asyncWrapper(async (req: Request, res: Response) => {
-  const { email, firstName, lastName, password } = req.body;
-
-  if (!email || !firstName || !lastName || !password) {
-    throw new AppError('All fields are required', 400);
-  }
-  //TODO: input validation using zod
+  const { email, firstName, lastName, password }: UserRegistration = req.body;
 
   const oldUser = await prismaClient.user.findUnique({
     where: { email },
@@ -51,12 +46,7 @@ const registerUser = asyncWrapper(async (req: Request, res: Response) => {
 });
 
 const loginUser = asyncWrapper(async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    throw new AppError('All fields are required', 400);
-  }
-  //TODO: input validation using zod
+  const { email, password }: UserLogin = req.body;
 
   const user = await prismaClient.user.findUnique({
     where: { email },

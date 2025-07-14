@@ -85,7 +85,7 @@ const loginUser = asyncWrapper(async (req: Request, res: Response) => {
   });
 });
 
-const logoutUser = asyncWrapper(async (req: Request, res: Response) => {
+const logoutUser = asyncWrapper(async (_req: Request, res: Response) => {
   clearAuthCookies(res);
   sendSuccessResponse(res, 200, 'User Logged Out Successfully');
 });
